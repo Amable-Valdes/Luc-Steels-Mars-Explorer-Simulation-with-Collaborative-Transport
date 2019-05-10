@@ -127,8 +127,6 @@ function Robot(x, y) {
 	
 	this.mineralLoaded = null;
 	this.iterationsWithoutChangeSpeed = 0;
-	
-	this.signal_need_help_with_mineral = null;
 
     this.setTrack = function () {
         listTracks.push(new Track(this.x,this.y))
@@ -139,8 +137,6 @@ function Robot(x, y) {
 		var collisionMineral = collisionRobot_Minerals(this,senseMinerals);
 		var collisionMothership = collisionRobot_Mothership(this);
 		var collisionTracks = collisionRobot_Track(this);
-		var feelHelpSignal = this.senseHelpSignal();
-		
 		//	(1) IF detect an obstacle THEN change direction
 		if(false){
 			
@@ -151,39 +147,11 @@ function Robot(x, y) {
 		//		THEN drop 2 crumbs 
 		//		AND travel up gradient 
 		} else if(this.mineralLoaded != null && collisionMothership == -1){
-			// If the mineral is heavy you must coordinate with other robots
-			if(this.mineralLoaded.mustBePushed()){
-				
-				if(this.mineralLoaded.packedBy.length < 2){
-					moveRobotGroup(this.mineralLoaded.packedBy);
-				} else{
-					// wait for help
-				}
-			// If not, you can carry it alone
-			} else {
-				this.followMothershipSignal();
-				listTracks.push(new Track(this.drawable.x, this.drawable.y, 2));
-				
-				this.mineralLoaded.drawable.x = this.drawable.x;
-				this.mineralLoaded.drawable.y = this.drawable.y;
-			}
-		//	(NEW) 	IF detect help signal
-		//			AND NOT at the base 
-		//			THEN help
-		} else if(feelHelpSignal != null && collisionMothership == -1){
+			this.followMothershipSignal();
+			listTracks.push(new Track(this.drawable.x, this.drawable.y, 2));
 			
-			var helpMineral = feelHelpSignal.signal_need_help_with_mineral;
-			
-			// Are we in collision with the mineral?
-			if( collisionRobot_Mineral(this, helpMineral) ){
-				helpMineral.packedBy.push(this);
-				this.helpSignal(helpMineral);
-				
-			// If not, move closer to the mineral
-			} else {
-				this.moveCloser(helpMineral);
-			}
-
+			this.mineralLoaded.drawable.x = this.drawable.x;
+			this.mineralLoaded.drawable.y = this.drawable.y;
 			
 		//	(4) IF detect a sample 
 		//		AND NOT at the base 
@@ -193,24 +161,35 @@ function Robot(x, y) {
 			if(collisionMineral != -1){
 				var mineral_in_colision = listMinerals[findMineralInList(senseMinerals[collisionMineral])];
 				console.log(mineral_in_colision);
-				
-				// ...and when we know what mineral is we are in collision with it
-				if(collisionMineral != -1 && mineral_in_colision.packedBy.length === 0){
-					// We add the robot to the list of robots moving the mineral
-					mineral_in_colision.packedBy.push(this);
-					// This mineral is heavy? It need help?
-					if( mineral_in_colision.mustBePushed() ){
-						this.helpSignal(mineral_in_colision);
-					// If it can solo then load the mineral
-					} else {
-						this.loadMineral(mineral_in_colision);
-						
-					}
 			}
-			
+			// ...and when we know what mineral is we are in collision with it
+			if(collisionMineral != -1 && mineral_in_colision.packedBy.length === 0){
+				
+				// Comprobamos que el mineral se puede mover con solo este robot.
+				
+				
+				this.loadMineral(mineral_in_colision);
 			// If we are not in collision with it, then we need to be closer
 			} else {
-				this.moveCloser(this.findCloserMineral(senseMinerals));
+				// buscamos el mineral más cercano
+				var closer = this.findCloserMineral(senseMinerals);
+				// ajustamos nuestra velocidad del eje X para acercarnos al mineral
+				if(closer.drawable.x < this.drawable.x ){
+					this.speed_x = -0.8
+				} else {
+					this.speed_x = 0.8
+				}
+				
+				// ajustamos nuestra velocidad del eje Y para acercarnos al mineral
+				if(closer.drawable.y < this.drawable.y ){
+					this.speed_y = -0.8
+				} else {
+					this.speed_y = 0.8
+				}
+				
+				// El robot se mueve
+				this.drawable.x = this.drawable.x + this.speed_x * 10;
+				this.drawable.y = this.drawable.y + this.speed_y * 10;
 			}
 			
 		//	(5) IF sense crumbs 
@@ -241,38 +220,6 @@ function Robot(x, y) {
 		//console.log(this.speed_y);
 	};
 	
-	this.moveCloser = function(objectToApproximate){
-		// we look for the object we must be closer
-		
-		// ajustamos nuestra velocidad del eje X para acercarnos al mineral
-		if(objectToApproximate.drawable.x < this.drawable.x ){
-			this.speed_x = -0.8
-		} else {
-			this.speed_x = 0.8
-		}
-		
-		// ajustamos nuestra velocidad del eje Y para acercarnos al mineral
-		if(objectToApproximate.drawable.y < this.drawable.y ){
-			this.speed_y = -0.8
-		} else {
-			this.speed_y = 0.8
-		}
-		
-		// El robot se mueve
-		this.drawable.x = this.drawable.x + this.speed_x * 10;
-		this.drawable.y = this.drawable.y + this.speed_y * 10;
-	};
-	
-	this.helpSignal = function(mineral){
-		this.signal_need_help_with_mineral = mineral;
-		this.drawable.image.src = "./resources/images/robotSignal.png";
-	};
-	
-	this.stopHelpSignal = function(){
-		this.signal_need_help_with_mineral = null
-		this.drawable.image.src = "./resources/images/robot.png";
-	};
-	
 	this.senseMinerals = function(){
 		listCloseMinerals = [];
 		for (i = 0; i < listMinerals.length; i++) {
@@ -288,24 +235,9 @@ function Robot(x, y) {
 		return listCloseMinerals;
 	};
 	
-	this.senseHelpSignal = function(){
-		for(i = 0; i < listRobots.length; i++) {
-			if(
-				listRobots[i].signal_need_help_with_mineral != null &&
-				listRobots[i].drawable.x < this.drawable.x + 40 &&
-				listRobots[i].drawable.x > this.drawable.x - 40 &&
-				listRobots[i].drawable.y < this.drawable.y + 40 &&
-				listRobots[i].drawable.y > this.drawable.y - 40
-			){
-				return listRobots[i];
-			}
-		}
-		return listRobots[i];
-	};
-	
 	this.loadMineral = function(mineral){
 		this.mineralLoaded = mineral;
-		this.mineralLoaded.isBeingTransported = true;
+		mineral.isBeingTransported = true;
 		this.mineralLoaded.drawable.x = this.drawable.x;
 		this.mineralLoaded.drawable.y = this.drawable.y;
 	};
@@ -369,7 +301,6 @@ function Robot(x, y) {
 		this.drawable.x = this.drawable.x + this.speed_x * 10;
 		this.drawable.y = this.drawable.y + this.speed_y * 10;
 	}
-	
 	this.followTrack = function(collisionTracks){
 		
 		var closer = this.findSignal();
@@ -423,21 +354,6 @@ function Mineral(x, y, param_weight) {
 	
 	this.weight = param_weight;
 	
-	this.mustBePushed = function(){
-		if( this.weight > 12 ){
-			return true;
-		}
-		return false;
-	}
-	
-	this.isEnoughForce = function(){
-		if(this.weight > 12 && this.packedBy.length < 2){
-			console.log("SOY DEMASIADO PESADO!!!")
-			return false;
-		}
-		return true;
-	}
-	
 	this.equals = function(mineral){
 		if(this.originalPosition_x == mineral.originalPosition_x 
 			&& this.originalPosition_y && mineral.originalPosition_y){
@@ -464,26 +380,15 @@ function findMineralInList(mineral){
 
 function collisionRobot_Minerals(robot,listCloserMinerals){
 	for (i = 0; i < listCloserMinerals.length; i++) {
-		if( collisionRobot_Mineral(
-				robot, 
-				listCloserMinerals[i]) 
-		){
+		if(listCloserMinerals[i].drawable.x < robot.drawable.x + 10
+			&& listCloserMinerals[i].drawable.x > robot.drawable.x - 10
+			&& listCloserMinerals[i].drawable.y < robot.drawable.y + 10
+			&& listCloserMinerals[i].drawable.y > robot.drawable.y - 10
+			){
 			return i;
 		}
 	}
 	return -1;
-};
-
-function collisionRobot_Mineral(robot, mineral){
-	if(
-		mineral.drawable.x < robot.drawable.x + 10
-		&& mineral.drawable.x > robot.drawable.x - 10
-		&& mineral.drawable.y < robot.drawable.y + 10
-		&& mineral.drawable.y > robot.drawable.y - 10
-		){
-			return true;
-	}
-	return false;
 };
 
 function collisionRobot_Mothership(robot){
