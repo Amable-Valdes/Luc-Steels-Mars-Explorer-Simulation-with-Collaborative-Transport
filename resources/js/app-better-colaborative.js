@@ -7,6 +7,8 @@ var listTracks = [];
 var WIDTH = 800;
 var HEIGHT = 800;
 
+var startTime = new Date().getTime();
+
 var simulation = {
     start: function () {
         this.canvas = document.getElementById("canvas");
@@ -58,6 +60,10 @@ function init(){
 		mineral_to_change.packedBy = [];
 		mineral_to_change = null;
     }
+	
+	for(i = 0; i < listMinerals.length; i++){
+		canvasLimitsMineral(listMinerals[i]);
+	}
 			
 }
 
@@ -81,9 +87,9 @@ function updateCanvas() {
     }
 	for (i = 0; i < listMotherships.length; i++) {
         listMotherships[i].drawable.draw();
-		ctx = simulation.context;
-		ctx.rect(listMotherships[i].drawable.x - 40 ,listMotherships[i].drawable.y - 40,110,110);
-		ctx.stroke();
+		//ctx = simulation.context;
+		//ctx.rect(listMotherships[i].drawable.x - 40 ,listMotherships[i].drawable.y - 40,110,110);
+		//ctx.stroke();
 	}
     for (i = 0; i < listRobots.length; i++) {
 		listRobots[i].execute();
@@ -95,7 +101,11 @@ function updateCanvas() {
 	for (i = 0; i < listMineralsInBase.length; i++) {
 		listMineralsInBase[i].drawable.draw();
 	}
-	
+	if(listMinerals.length === 0){
+		console.log( (new Date().getTime() - startTime)/1000 );
+	} else {
+		console.log(listMinerals.length);
+	}
 };
 
 function Drawable(x,y,width,height){
@@ -217,7 +227,7 @@ function Robot(x, y) {
 		//	(4) IF detect a sample without robot carring
 		//		AND NOT at the base 
 		//		THEN pick sample up or warn others
-		} else if(senseMinerals.length != 0 && this.findCloserMineral(senseMinerals).packedBy.length  === 0 && this.mineralLoaded == null && collisionMothership == -1){
+		} else if(senseMinerals.length != 0 && this.findCloserMineral(senseMinerals).packedBy.length === 0 && this.mineralLoaded == null && collisionMothership == -1){
 			// If we are in collision with a mineral we look in the list what mineral is...
 			if(collisionMineral != -1){
 				var mineral_in_colision = listMinerals[findMineralInList(senseMinerals[collisionMineral])];
@@ -247,7 +257,12 @@ function Robot(x, y) {
 						this.loadMineral(mineral_in_colision);
 						
 					}
-			}
+				} else {
+					var closerMineral = this.findCloserMineral(senseMinerals);
+					if(closerMineral.packedBy.length === 0){
+						this.moveCloser(closerMineral);
+					}
+				}
 			
 			// If we are not in collision with it, then we need to be closer
 			} else {
@@ -508,61 +523,16 @@ function moveRobotGroup( robotsToMove ) {
 		this.moth_y = 1
 	}
 	
-	//console.log("Group:");
-	//console.log(this.moth_x);
-	//console.log(this.moth_y);
-	
-	
-	// 1 1 | -1 1
-	//
-	
-	
-	/*
-	// + + ESTE ESTA BIEN
-	if(this.moth_x > 0 && this.moth_y > 0){
-		robotsToMove[0].drawable.x = robotsToMove[0].drawable.x + 0.5;
-		robotsToMove[0].drawable.y = robotsToMove[0].drawable.y + 0.5;
-		
-		robotsToMove[1].drawable.x = robotsToMove[1].drawable.x + 0.5;
-		robotsToMove[1].drawable.y = robotsToMove[1].drawable.y + 0.5;
-		
-		this.mineralToMove.drawable.x = this.mineralToMove.drawable.x + 0.5;
-		this.mineralToMove.drawable.y = this.mineralToMove.drawable.y + 0.5;
+	if(robotsToMove[2] !== undefined){
+		while(robotsToMove[2] !== undefined){
+			robotsToMove[2].stopHelpSignal();
+			robotsToMove[2].mineralLoaded = null;
+			this.mineralToMove.packedBy.splice(2,1);
+			
+		}
+		console.log(robotsToMove[2])
+		console.log("hay un tercerlo!!!")
 	}
-	// + -
-	if(this.moth_x > 0 && this.moth_y < 0){
-		robotsToMove[0].drawable.x = robotsToMove[0].drawable.x - 0.5;
-		robotsToMove[0].drawable.y = robotsToMove[0].drawable.y + 0.5;
-		
-		robotsToMove[1].drawable.x = robotsToMove[1].drawable.x - 0.5;
-		robotsToMove[1].drawable.y = robotsToMove[1].drawable.y + 0.5;
-		
-		this.mineralToMove.drawable.x = this.mineralToMove.drawable.x - 0.5;
-		this.mineralToMove.drawable.y = this.mineralToMove.drawable.y + 0.5;
-	}
-	// - +
-	if(this.moth_x < 0 && this.moth_y > 0){
-		robotsToMove[0].drawable.x = robotsToMove[0].drawable.x - 0.5;
-		robotsToMove[0].drawable.y = robotsToMove[0].drawable.y + 0.5;
-		
-		robotsToMove[1].drawable.x = robotsToMove[1].drawable.x - 0.5;
-		robotsToMove[1].drawable.y = robotsToMove[1].drawable.y + 0.5;
-		
-		this.mineralToMove.drawable.x = this.mineralToMove.drawable.x - 0.5;
-		this.mineralToMove.drawable.y = this.mineralToMove.drawable.y + 0.5;
-	}
-	// - -
-	if(this.moth_x < 0 && this.moth_y < 0){
-		robotsToMove[0].drawable.x = robotsToMove[0].drawable.x + 0.5;
-		robotsToMove[0].drawable.y = robotsToMove[0].drawable.y + 0.5;
-		
-		robotsToMove[1].drawable.x = robotsToMove[1].drawable.x + 0.5;
-		robotsToMove[1].drawable.y = robotsToMove[1].drawable.y + 0.5;
-		
-		this.mineralToMove.drawable.x = this.mineralToMove.drawable.x + 0.5;
-		this.mineralToMove.drawable.y = this.mineralToMove.drawable.y + 0.5;
-	}*/
-	
 
 	robotsToMove[0].drawable.x = this.mineralToMove.drawable.x + 2;
 	robotsToMove[0].drawable.y = this.mineralToMove.drawable.y + 12;
@@ -728,4 +698,16 @@ function canvasLimits(robot){
 		robot.drawable.x = 0;
 	if(robot.drawable.y > simulation.canvas.height + 10)
 		robot.drawable.y = 0;
+}
+
+function canvasLimitsMineral(mineral){
+	// Limits
+	if(mineral.drawable.x < 0)
+		mineral.drawable.x = simulation.canvas.width - 10 - (Math.random() * 10);
+	if(mineral.drawable.y < 0)
+		mineral.drawable.y = simulation.canvas.height - 10 - (Math.random() * 10);
+	if(mineral.drawable.x > simulation.canvas.width)
+		mineral.drawable.x = 10 + Math.random() * 10;
+	if(mineral.drawable.y > simulation.canvas.height)
+		mineral.drawable.y = 10 + Math.random() * 10;
 }

@@ -81,9 +81,9 @@ function updateCanvas() {
     }
 	for (i = 0; i < listMotherships.length; i++) {
         listMotherships[i].drawable.draw();
-		ctx = simulation.context;
-		ctx.rect(listMotherships[i].drawable.x - 40 ,listMotherships[i].drawable.y - 40,100,100);
-		ctx.stroke();
+		//ctx = simulation.context;
+		//ctx.rect(listMotherships[i].drawable.x - 40 ,listMotherships[i].drawable.y - 40,100,100);
+		//ctx.stroke();
 	}
     for (i = 0; i < listRobots.length; i++) {
 		listRobots[i].execute();

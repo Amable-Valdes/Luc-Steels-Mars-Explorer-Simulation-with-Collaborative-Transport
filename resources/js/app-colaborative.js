@@ -7,6 +7,8 @@ var listTracks = [];
 var WIDTH = 800;
 var HEIGHT = 800;
 
+var startTime = new Date().getTime();
+
 var simulation = {
     start: function () {
         this.canvas = document.getElementById("canvas");
@@ -58,6 +60,10 @@ function init(){
 		mineral_to_change.packedBy = [];
 		mineral_to_change = null;
     }
+	
+	for(i = 0; i < listMinerals.length; i++){
+		canvasLimitsMineral(listMinerals[i]);
+	}
 			
 }
 
@@ -81,9 +87,9 @@ function updateCanvas() {
     }
 	for (i = 0; i < listMotherships.length; i++) {
         listMotherships[i].drawable.draw();
-		ctx = simulation.context;
-		ctx.rect(listMotherships[i].drawable.x - 40 ,listMotherships[i].drawable.y - 40,110,110);
-		ctx.stroke();
+		//ctx = simulation.context;
+		//ctx.rect(listMotherships[i].drawable.x - 40 ,listMotherships[i].drawable.y - 40,110,110);
+		//ctx.stroke();
 	}
     for (i = 0; i < listRobots.length; i++) {
 		listRobots[i].execute();
@@ -95,7 +101,11 @@ function updateCanvas() {
 	for (i = 0; i < listMineralsInBase.length; i++) {
 		listMineralsInBase[i].drawable.draw();
 	}
-	
+	if(listMinerals.length === 0){
+		console.log( (new Date().getTime() - startTime)/1000 );
+	} else {
+		console.log(listMinerals.length);
+	}
 };
 
 function Drawable(x,y,width,height){
@@ -200,7 +210,7 @@ function Robot(x, y) {
 				var mineral_in_colision = listMinerals[findMineralInList(senseMinerals[collisionMineral])];
 				
 				// ...and when we know what mineral is we are in collision with it
-				if(collisionMineral != -1 && mineral_in_colision.packedBy.length === 0){
+				if(collisionMineral != -1 && mineral_in_colision !== undefined && mineral_in_colision.packedBy.length === 0){
 					// We add the robot to the list of robots moving the mineral
 					mineral_in_colision.packedBy.push(this);
 					// This mineral is heavy? It need help?
@@ -211,7 +221,13 @@ function Robot(x, y) {
 						this.loadMineral(mineral_in_colision);
 						
 					}
-			}
+				
+				} else {
+					var closerMineral = this.findCloserMineral(senseMinerals);
+					if(closerMineral.packedBy.length === 0){
+						this.moveCloser(closerMineral);
+					}
+				}
 			
 			// If we are not in collision with it, then we need to be closer
 			} else {
@@ -451,61 +467,16 @@ function moveRobotGroup( robotsToMove ) {
 		this.moth_y = 1
 	}
 	
-	//console.log("Group:");
-	//console.log(this.moth_x);
-	//console.log(this.moth_y);
-	
-	
-	// 1 1 | -1 1
-	//
-	
-	
-	/*
-	// + + ESTE ESTA BIEN
-	if(this.moth_x > 0 && this.moth_y > 0){
-		robotsToMove[0].drawable.x = robotsToMove[0].drawable.x + 0.5;
-		robotsToMove[0].drawable.y = robotsToMove[0].drawable.y + 0.5;
-		
-		robotsToMove[1].drawable.x = robotsToMove[1].drawable.x + 0.5;
-		robotsToMove[1].drawable.y = robotsToMove[1].drawable.y + 0.5;
-		
-		this.mineralToMove.drawable.x = this.mineralToMove.drawable.x + 0.5;
-		this.mineralToMove.drawable.y = this.mineralToMove.drawable.y + 0.5;
+	if(robotsToMove[2] !== undefined){
+		while(robotsToMove[2] !== undefined){
+			robotsToMove[2].stopHelpSignal();
+			robotsToMove[2].mineralLoaded = null;
+			this.mineralToMove.packedBy.splice(2,1);
+			
+		}
+		console.log(robotsToMove[2])
+		console.log("hay un tercerlo!!!")
 	}
-	// + -
-	if(this.moth_x > 0 && this.moth_y < 0){
-		robotsToMove[0].drawable.x = robotsToMove[0].drawable.x - 0.5;
-		robotsToMove[0].drawable.y = robotsToMove[0].drawable.y + 0.5;
-		
-		robotsToMove[1].drawable.x = robotsToMove[1].drawable.x - 0.5;
-		robotsToMove[1].drawable.y = robotsToMove[1].drawable.y + 0.5;
-		
-		this.mineralToMove.drawable.x = this.mineralToMove.drawable.x - 0.5;
-		this.mineralToMove.drawable.y = this.mineralToMove.drawable.y + 0.5;
-	}
-	// - +
-	if(this.moth_x < 0 && this.moth_y > 0){
-		robotsToMove[0].drawable.x = robotsToMove[0].drawable.x - 0.5;
-		robotsToMove[0].drawable.y = robotsToMove[0].drawable.y + 0.5;
-		
-		robotsToMove[1].drawable.x = robotsToMove[1].drawable.x - 0.5;
-		robotsToMove[1].drawable.y = robotsToMove[1].drawable.y + 0.5;
-		
-		this.mineralToMove.drawable.x = this.mineralToMove.drawable.x - 0.5;
-		this.mineralToMove.drawable.y = this.mineralToMove.drawable.y + 0.5;
-	}
-	// - -
-	if(this.moth_x < 0 && this.moth_y < 0){
-		robotsToMove[0].drawable.x = robotsToMove[0].drawable.x + 0.5;
-		robotsToMove[0].drawable.y = robotsToMove[0].drawable.y + 0.5;
-		
-		robotsToMove[1].drawable.x = robotsToMove[1].drawable.x + 0.5;
-		robotsToMove[1].drawable.y = robotsToMove[1].drawable.y + 0.5;
-		
-		this.mineralToMove.drawable.x = this.mineralToMove.drawable.x + 0.5;
-		this.mineralToMove.drawable.y = this.mineralToMove.drawable.y + 0.5;
-	}*/
-	
 
 	robotsToMove[0].drawable.x = this.mineralToMove.drawable.x + 2;
 	robotsToMove[0].drawable.y = this.mineralToMove.drawable.y + 12;
@@ -663,12 +634,24 @@ function collisionMineral_Mothership(mothership, mineral){
 
 function canvasLimits(robot){
 	// Limits
-	if(robot.drawable.x < 0)
+	if(robot.drawable.x < -10)
 		robot.drawable.x = simulation.canvas.width;
-	if(robot.drawable.y < 0)
+	if(robot.drawable.y < -10)
 		robot.drawable.y = simulation.canvas.height;
-	if(robot.drawable.x > simulation.canvas.width)
+	if(robot.drawable.x > simulation.canvas.width + 10)
 		robot.drawable.x = 0;
-	if(robot.drawable.y > simulation.canvas.height)
+	if(robot.drawable.y > simulation.canvas.height + 10)
 		robot.drawable.y = 0;
+}
+
+function canvasLimitsMineral(mineral){
+	// Limits
+	if(mineral.drawable.x < 0)
+		mineral.drawable.x = simulation.canvas.width - 10 - (Math.random() * 10);
+	if(mineral.drawable.y < 0)
+		mineral.drawable.y = simulation.canvas.height - 10 - (Math.random() * 10);
+	if(mineral.drawable.x > simulation.canvas.width)
+		mineral.drawable.x = 10 + Math.random() * 10;
+	if(mineral.drawable.y > simulation.canvas.height)
+		mineral.drawable.y = 10 + Math.random() * 10;
 }
