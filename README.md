@@ -1,6 +1,17 @@
 # Steels-Mars-Explorer-Simulation-with-Collaborative-Transport
 
-## Time to tell a story...
+## Project State
+The simulation has implemented the base experiment; The exploration of Mars with robots that collect stones.
+
+I have implemented collective transport; now robots collect heavier minerals. This robots communicate with each other to collect a heavy mineral together.
+
+Currently the software is written in JavaScript and can be played in any browser. I have taken advantage of this project and I have created the 
+same base experiment in Unity, which can be consulted [here](https://github.com/Amable-Valdes/Luc-Steels-Mars-Explorer-Simulation-In-Unity) . 
+This project has allowed me to learn the basics of Unity, a plataform I have always been interest.
+
+![Simulation image should be visible here](https://github.com/Amable-Valdes/Steels-Mars-Explorer-Simulation-with-Collaborative-Transport/blob/master/others/js_Simulation_Example.PNG)
+
+## Why this project? Time to tell a story...
 Well, I am finishing my master degree in Artificial Inteligent in the "Universidad Politécnica de Madrid" 
 [MUIA](http://www.dia.fi.upm.es/masteria/?q=es/MUIA) and I have to develop a program based on 
 multiagent systems for the "Intelligent agents and multi-agent systems" class.
@@ -11,17 +22,6 @@ be of the same weight and to move some of these rocks would be necessary several
 
 With this, I would simulate a real experiment at the same time that I would be adding my own ideas 
 and improvements (more than enough to pass the class, besides that it seems an interesting experiment).
-
-## Project State
-For now the simulation has implemented the base experiment; The exploration of Mars with robots that collect stones.
-
-In the future I will implement collective transport.
-
-Currently the software is written in JavaScript and can be played in any browser. In the future, 
-it is possible to implement a simulation in Unity (So I could use this project to learn Unity, 
-which I have always been interested in)
-
-![Simulation image should be visible here](https://github.com/Amable-Valdes/Steels-Mars-Explorer-Simulation-with-Collaborative-Transport/blob/master/others/js_Simulation_Example.PNG)
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
